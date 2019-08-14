@@ -1,5 +1,6 @@
 package com.jsoh.room_exam;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -20,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
         mResultTextView = findViewById(R.id.result_text);
 
         final AppDatabase db = Room.databaseBuilder(this, AppDatabase.class, "todo-db")
-                .allowMainThreadQueries()
                 .build();
 
         // UI 갱신
@@ -30,7 +30,22 @@ public class MainActivity extends AppCompatActivity {
 
         // 버튼 클릭시 DB에 insert
         findViewById(R.id.add_button).setOnClickListener(view -> {
-            db.todoDao().insert(new Todo(mTodoEditText.getText().toString()));
+            new InsertAsyncTask(db.todoDao())
+                    .execute(new Todo(mTodoEditText.getText().toString()));
         });
+    }
+
+    private static class InsertAsyncTask extends AsyncTask<Todo, Void, Void> {
+        private TodoDao mTodoDao;
+
+        public InsertAsyncTask(TodoDao todoDao) {
+            this.mTodoDao = todoDao;
+        }
+
+        @Override
+        protected Void doInBackground(Todo... todos) {
+            mTodoDao.insert(todos[0]);
+            return null;
+        }
     }
 }
