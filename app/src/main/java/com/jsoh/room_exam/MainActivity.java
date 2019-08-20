@@ -1,12 +1,11 @@
 package com.jsoh.room_exam;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.room.Room;
+import androidx.lifecycle.ViewModelProviders;
 
 public class MainActivity extends AppCompatActivity {
     private EditText mTodoEditText;
@@ -20,32 +19,18 @@ public class MainActivity extends AppCompatActivity {
         mTodoEditText = findViewById(R.id.todo_edit);
         mResultTextView = findViewById(R.id.result_text);
 
-        final AppDatabase db = Room.databaseBuilder(this, AppDatabase.class, "todo-db")
-                .build();
+        MainViewModel viewModel = ViewModelProviders.of(this)
+                .get(MainViewModel.class);
 
         // UI 갱신
-        db.todoDao().getAll().observe(this, todos -> {
+        viewModel.getAll().observe(this, todos -> {
             mResultTextView.setText(todos.toString());
         });
 
         // 버튼 클릭시 DB에 insert
         findViewById(R.id.add_button).setOnClickListener(view -> {
-            new InsertAsyncTask(db.todoDao())
-                    .execute(new Todo(mTodoEditText.getText().toString()));
+            viewModel.insert(new Todo(mTodoEditText.getText().toString()));
         });
     }
 
-    private static class InsertAsyncTask extends AsyncTask<Todo, Void, Void> {
-        private TodoDao mTodoDao;
-
-        public InsertAsyncTask(TodoDao todoDao) {
-            this.mTodoDao = todoDao;
-        }
-
-        @Override
-        protected Void doInBackground(Todo... todos) {
-            mTodoDao.insert(todos[0]);
-            return null;
-        }
-    }
 }
