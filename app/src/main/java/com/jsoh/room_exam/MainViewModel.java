@@ -12,20 +12,23 @@ import java.util.List;
 
 public class MainViewModel extends AndroidViewModel {
     private AppDatabase db;
+    public LiveData<List<Todo>> todos;
+    public String newTodo;
 
     public MainViewModel(@NonNull Application application) {
         super(application);
 
         db = Room.databaseBuilder(application, AppDatabase.class, "todo-db")
                 .build();
+        todos = getAll();
     }
 
     public LiveData<List<Todo>> getAll() {
         return db.todoDao().getAll();
     }
 
-    public void insert(Todo todo) {
-        new InsertAsyncTask(db.todoDao()).execute(todo);
+    public void insert(String todo) {
+        new InsertAsyncTask(db.todoDao()).execute(new Todo(todo));
     }
 
 
